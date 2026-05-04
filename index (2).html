@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FF385C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="наши места">
+<meta name="description" content="Кофейни и места Минска — с подругами">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<title>наши места</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFFFFF; --bg2: #F7F7F7; --black: #222222; --gray: #717171;
+  --gray2: #EBEBEB; --gray3: #B0B0B0; --accent: #FF385C; --accent-light: #FFF0F2;
+  --border: #DDDDDD; --shadow: 0 2px 16px rgba(0,0,0,0.12); --shadow-sm: 0 1px 6px rgba(0,0,0,0.08);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body { background: var(--bg); color: var(--black); font-family: 'Inter', sans-serif; font-size: 14px; height: 100%; overscroll-behavior: none; }
+.app { max-width: 420px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: calc(72px + var(--safe-bottom)); }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* Search bar */
+.search-bar-wrap { padding: 16px 24px 12px; position: sticky; top: 0; background: var(--bg); z-index: 50; }
+.search-bar { display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 40px; padding: 12px 16px; box-shadow: var(--shadow-sm); cursor: pointer; transition: box-shadow .15s; }
+.search-bar:hover { box-shadow: var(--shadow); }
+.search-icon { font-size: 15px; flex-shrink: 0; color: var(--black); }
+.search-texts { flex: 1; }
+.search-main { font-size: 13px; font-weight: 600; color: var(--black); }
+.search-sub { font-size: 11px; color: var(--gray); margin-top: 1px; }
+.search-filter-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; background: var(--bg); color: var(--gray); }
+
+/* Category pills */
+.cat-scroll { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; padding: 0 24px; border-bottom: 1px solid var(--border); position: sticky; top: 69px; background: var(--bg); z-index: 49; }
+.cat-scroll::-webkit-scrollbar { display: none; }
+.cat-pill { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 16px 12px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; flex-shrink: 0; transition: all .15s; opacity: .5; }
+.cat-pill.active { opacity: 1; border-bottom-color: var(--black); }
+.cat-pill:hover { opacity: 1; }
+.cat-icon { font-size: 20px; line-height: 1; }
+.cat-label { font-size: 11px; font-weight: 500; color: var(--black); white-space: nowrap; }
+
+/* Group selector */
+.group-selector { padding: 14px 24px 0; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.group-selector::-webkit-scrollbar { display: none; }
+.group-chip { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 22px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: 500; color: var(--black); transition: all .15s; flex-shrink: 0; }
+.group-chip:hover { border-color: var(--black); }
+.group-chip.active { background: var(--black); color: var(--bg); border-color: var(--black); }
+.group-chip-avs { display: flex; }
+.group-chip-av { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--bg); display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 700; margin-right: -5px; }
+.group-chip.active .group-chip-av { border-color: var(--black); }
+.new-group-chip { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 22px; border: 1px dashed var(--border); background: transparent; cursor: pointer; white-space: nowrap; font-size: 13px; color: var(--gray); transition: all .15s; flex-shrink: 0; font-family: 'Inter', sans-serif; }
+.new-group-chip:hover { border-color: var(--black); color: var(--black); }
+
+/* Smart search */
+.smart-search-wrap { padding: 12px 24px 0; }
+.smart-search-box { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg2); font-size: 14px; color: var(--black); font-family: 'Inter', sans-serif; outline: none; transition: border-color .15s; }
+.smart-search-box:focus { border-color: var(--black); background: var(--bg); }
+.smart-search-box::placeholder { color: var(--gray3); }
+.active-filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 24px 0; }
+.af-chip { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; padding: 5px 12px; background: var(--black); color: var(--bg); border-radius: 20px; }
+.af-x { cursor: pointer; opacity: .7; font-size: 12px; }
+.search-loading { display: flex; align-items: center; gap: 8px; padding: 8px 24px 0; font-size: 13px; color: var(--gray); }
+.dot-anim { display: flex; gap: 3px; }
+.dot-anim span { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: blink 1.2s infinite; }
+.dot-anim span:nth-child(2){animation-delay:.2s} .dot-anim span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* Section */
+.section-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 12px; }
+.section-title { font-size: 18px; font-weight: 600; color: var(--black); }
+.view-toggle { display: flex; border: 1px solid var(--border); border-radius: 22px; overflow: hidden; }
+.vt { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; background: var(--bg); border: none; transition: background .1s; }
+.vt.active { background: var(--black); color: var(--bg); }
+
+/* Grid */
+.places-grid { padding: 0 24px; display: grid; gap: 24px; }
+.places-grid.view-2 { grid-template-columns: 1fr 1fr; gap: 16px; }
+.places-grid.view-1 { grid-template-columns: 1fr; }
+
+/* Card */
+.place-card { cursor: pointer; position: relative; }
+.place-card:hover .card-img { transform: scale(1.03); }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; }
+.card-name { font-size: 14px; font-weight: 600; color: var(--black); line-height: 1.3; }
+.view-2 .card-name { font-size: 13px; }
+.card-rating { display: flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+.view-2 .card-rating { font-size: 12px; }
+.card-addr { font-size: 13px; color: var(--gray); margin-top: 2px; }
+.view-2 .card-addr { font-size: 11px; }
+.card-by { font-size: 12px; color: var(--gray3); margin-top: 4px; }
+.view-2 .card-by { font-size: 10px; }
+.card-meta-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.card-tag { font-size: 11px; color: var(--gray); }
+.view-2 .card-tag { font-size: 10px; }
+.card-visited-inline { font-size: 11px; color: #008A05; font-weight: 500; }
+.view-2 .card-visited-inline { font-size: 10px; }
+.place-card { cursor: pointer; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); transition: box-shadow .15s; }
+.place-card:hover { box-shadow: var(--shadow-sm); }
+.view-2 .place-card { border-radius: 10px; }
+.card-body { padding: 14px 16px; }
+.view-2 .card-body { padding: 10px 12px; }
+.card-heart { background: transparent; border: none; cursor: pointer; font-size: 20px; line-height: 1; transition: transform .2s; flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; position: relative; }
+.card-heart:hover { transform: scale(1.2); }
+.card-heart-outline { color: var(--gray3); position: absolute; }
+.card-heart-fill { position: absolute; color: var(--accent); opacity: 0; transition: opacity .15s; }
+.card-heart.loved .card-heart-fill { opacity: 1; }
+.view-2 .card-heart { font-size: 16px; }
+.card-actions-row { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.card-add-photo-btn { background: transparent; border: none; cursor: pointer; font-size: 14px; padding: 2px; opacity: .45; transition: opacity .15s; }
+.card-add-photo-btn:hover { opacity: 1; }
+.card-photo-wrap { margin: 8px 0 4px; border-radius: 8px; overflow: hidden; }
+.card-photo { width: 100%; height: 140px; object-fit: cover; display: block; }
+.view-2 .card-photo { height: 100px; }
+
+.empty-state { padding: 4rem 24px; text-align: center; }
+.empty-icon { font-size: 40px; margin-bottom: 16px; color: var(--gray3); }
+.empty-title { font-size: 18px; font-weight: 600; color: var(--black); margin-bottom: 8px; }
+.empty-text { font-size: 14px; color: var(--gray); line-height: 1.6; }
+
+.add-place-wrap { padding: 0 24px 8px; }
+.add-place-btn { width: 100%; padding: 14px; border-radius: 12px; border: 1.5px dashed var(--border); background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--gray); font-family: 'Inter', sans-serif; transition: all .15s; }
+.add-place-btn:hover { border-color: var(--black); color: var(--black); }
+
+/* Bottom nav */
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: var(--bg); border-top: 1px solid var(--border); display: flex; padding: 8px 0; padding-bottom: calc(8px + var(--safe-bottom)); z-index: 100; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 4px 0; }
+.nav-icon { font-size: 20px; color: var(--gray3); transition: color .15s; }
+.nav-label { font-size: 10px; font-weight: 500; color: var(--gray3); transition: color .15s; }
+.nav-item.active .nav-icon { color: var(--accent); }
+.nav-item.active .nav-label { color: var(--accent); }
+
+/* Detail */
+.detail-back { position: absolute; top: 16px; left: 16px; width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; box-shadow: var(--shadow-sm); z-index: 10; }
+.detail-hero { position: relative; }
+.detail-hero-img { width: 100%; height: 52vh; min-height: 280px; object-fit: cover; display: block; background: var(--gray2); }
+.detail-hero-placeholder { width: 100%; height: 52vh; min-height: 280px; background: var(--gray2); display: flex; align-items: center; justify-content: center; font-size: 64px; color: var(--gray3); }
+.detail-heart { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; box-shadow: var(--shadow-sm); color: var(--gray3); transition: color .15s; z-index: 10; }
+.detail-heart.active { color: var(--accent); }
+.detail-body { padding: 24px; }
+.detail-tag { display: inline-block; font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-light); padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; }
+.detail-name { font-size: 24px; font-weight: 700; color: var(--black); line-height: 1.2; margin-bottom: 6px; }
+.detail-addr { font-size: 14px; color: var(--gray); margin-bottom: 4px; }
+.detail-by { font-size: 13px; color: var(--gray3); margin-bottom: 20px; }
+.detail-divider { height: 1px; background: var(--border); margin: 20px 0; }
+.detail-add-photo { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--accent); cursor: pointer; text-decoration: underline; margin-bottom: 20px; background: none; border: none; font-family: 'Inter', sans-serif; }
+.story-title { font-size: 13px; font-weight: 600; color: var(--gray3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+.story-text { font-size: 14px; color: var(--gray); line-height: 1.8; }
+.story-text strong { color: var(--black); font-weight: 600; }
+.detail-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.d-btn { font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; color: var(--black); font-family: 'Inter', sans-serif; transition: all .15s; }
+.d-btn:hover { border-color: var(--black); }
+.d-btn.done { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.rv-title { font-size: 16px; font-weight: 600; color: var(--black); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+.rv-item-wrap { display: flex; gap: 12px; margin-bottom: 16px; }
+.rv-av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.rv-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.rv-name { font-size: 13px; font-weight: 600; color: var(--black); }
+.rv-stars { font-size: 12px; color: var(--black); }
+.rv-text { font-size: 13px; color: var(--gray); line-height: 1.6; }
+.rv-empty { font-size: 14px; color: var(--gray3); text-align: center; padding: 1.5rem 0; }
+.rv-form { background: var(--bg2); border-radius: 12px; padding: 16px; margin-top: 16px; }
+.rv-form-title { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 12px; }
+.rv-form-stars { display: flex; gap: 8px; margin-bottom: 12px; }
+.rv-star { font-size: 28px; cursor: pointer; color: var(--gray2); transition: color .1s; }
+.rv-star.active { color: var(--accent); }
+.rv-textarea { width: 100%; font-size: 14px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--black); font-family: 'Inter', sans-serif; resize: none; outline: none; line-height: 1.6; }
+.rv-textarea:focus { border-color: var(--black); }
+.rv-form-btns { display: flex; gap: 8px; margin-top: 12px; }
+.rv-save { font-size: 14px; font-weight: 600; padding: 10px 24px; border-radius: 8px; border: none; background: var(--accent); color: var(--bg); cursor: pointer; font-family: 'Inter', sans-serif; }
+.rv-cancel { font-size: 14px; font-weight: 500; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--gray); font-family: 'Inter', sans-serif; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: flex-end; justify-content: center; z-index: 200; }
+.modal-sheet { background: var(--bg); border-radius: 20px 20px 0 0; padding: 24px 24px; padding-bottom: calc(32px + var(--safe-bottom)); width: 100%; max-width: 420px; }
+.modal-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--gray2); margin: 0 auto 20px; }
+.modal-title { font-size: 18px; font-weight: 700; color: var(--black); margin-bottom: 20px; }
+.mf { margin-bottom: 16px; }
+.mf label { font-size: 12px; font-weight: 600; color: var(--black); display: block; margin-bottom: 6px; }
+.m-input { width: 100%; font-size: 14px; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--bg); color: var(--black); font-family: 'Inter', sans-serif; outline: none; transition: border-color .15s; -webkit-appearance: none; }
+.m-input:focus { border-color: var(--black); }
+.photo-upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; position: relative; transition: border-color .15s; }
+.photo-upload-area:hover { border-color: var(--black); }
+.photo-upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.photo-upload-label { font-size: 13px; color: var(--gray); }
+.photo-preview { width: 100%; height: 140px; object-fit: cover; display: block; border-radius: 8px; border: 1px solid var(--border); margin-top: 10px; }
+.photo-remove { font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--gray); margin-top: 8px; display: block; width: 100%; font-family: 'Inter', sans-serif; }
+.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+.mb-primary { flex: 1; font-size: 15px; font-weight: 600; padding: 14px; border-radius: 10px; border: none; background: var(--accent); color: var(--bg); cursor: pointer; font-family: 'Inter', sans-serif; }
+.mb-secondary { font-size: 15px; font-weight: 500; padding: 14px 18px; border-radius: 10px; border: 1.5px solid var(--border); background: transparent; cursor: pointer; color: var(--gray); font-family: 'Inter', sans-serif; }
+
+/* Install banner */
+.install-banner { position: fixed; bottom: calc(72px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 388px; background: var(--black); color: var(--bg); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; z-index: 90; box-shadow: var(--shadow); animation: slideUp .3s ease; }
+.install-banner-text { flex: 1; font-size: 13px; line-height: 1.4; }
+.install-banner-text b { display: block; font-weight: 600; margin-bottom: 2px; }
+.install-banner-btn { font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 8px; background: var(--accent); color: var(--bg); border: none; cursor: pointer; white-space: nowrap; font-family: 'Inter', sans-serif; }
+.install-banner-close { font-size: 18px; cursor: pointer; opacity: .6; flex-shrink: 0; }
+@keyframes slideUp { from{transform:translateX(-50%) translateY(20px);opacity:0} to{transform:translateX(-50%) translateY(0);opacity:1} }
+
+
+.card-photo-wrap { position: relative; border-radius: 12px 12px 0 0; overflow: hidden; }
+.view-2 .card-photo-wrap { border-radius: 10px 10px 0 0; }
+.card-photo-img { width: 100%; height: 160px; object-fit: cover; display: block; }
+.view-2 .card-photo-img { height: 120px; }
+.card-photo-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.3) 0%, transparent 60%); }
+.card-actions-row { display: flex; align-items: center; gap: 4px; }
+.card-add-photo-btn { background: transparent; border: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 2px; opacity: .45; transition: opacity .15s; }
+.card-add-photo-btn:hover { opacity: 1; }
+.view-2 .card-add-photo-btn { font-size: 13px; }
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.place-card{animation:fadeUp .25s ease both}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="screen active" id="s-main">
+  <div class="search-bar-wrap">
+    <div class="search-bar">
+      <div class="search-icon">⊹</div>
+      <div class="search-texts">
+        <div class="search-main">Минск</div>
+        <div class="search-sub">наши места · все категории</div>
+      </div>
+      <div class="search-filter-btn">◇</div>
+    </div>
+  </div>
+  <div class="cat-scroll" id="catScroll"></div>
+  <div class="group-selector" id="groupSelector"></div>
+  <div class="smart-search-wrap">
+    <input class="smart-search-box" id="searchInput" placeholder="хочу кофейню с завтраками с 8 утра..." oninput="handleSearchInput()">
+  </div>
+  <div id="activeFiltersWrap"></div>
+  <div id="searchLoadingWrap"></div>
+  <div class="section-header">
+    <div class="section-title" id="sectionTitle">все места</div>
+    <div class="view-toggle">
+      <button class="vt active" id="vt2" onclick="setView(2)">▦</button>
+      <button class="vt" id="vt1" onclick="setView(1)">▤</button>
+    </div>
+  </div>
+  <div class="places-grid view-2" id="placesList"></div>
+  <div style="height:16px"></div>
+  <div class="add-place-wrap">
+    <button class="add-place-btn" onclick="openModal('place')">+ добавить место</button>
+  </div>
+</div>
+
+<div class="screen" id="s-detail">
+  <div class="detail-hero" id="detailHero"></div>
+  <div class="detail-body">
+    <div class="detail-tag" id="detailTag"></div>
+    <div class="detail-name" id="detailName"></div>
+    <div class="detail-addr" id="detailAddr"></div>
+    <div class="detail-by" id="detailBy"></div>
+    <div id="detailAddPhoto"></div>
+    <div class="detail-divider"></div>
+    <div class="story-title">история места</div>
+    <div class="story-text" id="detailStory"></div>
+    <div class="detail-divider"></div>
+    <div class="detail-actions" id="detailActions"></div>
+    <div class="detail-divider"></div>
+    <div class="rv-title" id="rvTitle"></div>
+    <div id="detailReviews"></div>
+    <div id="reviewFormWrap"></div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="goMain()" id="nav-explore">
+    <div class="nav-icon">⊹</div>
+    <div class="nav-label">места</div>
+  </div>
+  <div class="nav-item" onclick="showFavorites()" id="nav-favorites">
+    <div class="nav-icon">♡</div>
+    <div class="nav-label">избранное</div>
+  </div>
+  <div class="nav-item" onclick="openModal('group')" id="nav-groups">
+    <div class="nav-icon">◎</div>
+    <div class="nav-label">группы</div>
+  </div>
+</div>
+
+</div>
+
+<div id="modalOverlay" style="display:none;" class="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal-sheet" id="modalContent"><div class="modal-handle"></div></div>
+</div>
+<input type="file" id="detailPhotoInput" accept="image/*" style="display:none" onchange="handleDetailPhotoUpload(event)">
+
+<script>
+// ── PWA Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
+// ── Install prompt (Android) ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  if (document.getElementById('installBanner')) return;
+  // Show iOS hint only in Safari
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone;
+  if (isStandalone) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'installBanner';
+  banner.className = 'install-banner';
+
+  if (isIOS && isSafari) {
+    banner.innerHTML = `
+      <div class="install-banner-text">
+        <b>Добавить на экран</b>
+        Нажми ↑ → «На экран домой»
+      </div>
+      <span class="install-banner-close" onclick="this.parentElement.remove()">✕</span>`;
+  } else if (deferredPrompt) {
+    banner.innerHTML = `
+      <div class="install-banner-text">
+        <b>Установить приложение</b>
+        Работает без интернета
+      </div>
+      <button class="install-banner-btn" onclick="installPWA()">Установить</button>
+      <span class="install-banner-close" onclick="this.parentElement.remove()">✕</span>`;
+  } else { return; }
+
+  document.body.appendChild(banner);
+  setTimeout(() => { if (banner.parentElement) banner.remove(); }, 8000);
+}
+
+async function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBanner')?.remove();
+}
+
+// Show iOS banner after 2s
+setTimeout(() => {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+  if (isIOS && isSafari && !window.navigator.standalone) showInstallBanner();
+}, 2000);
+
+// ── App Data ──
+const ME = {name:'я', initials:'Я', color:'#FFE0E6', textColor:'#FF385C'};
+const allMembers = [ME,
+  {name:'аня', initials:'АН', color:'#FFE8E8', textColor:'#CC2020'},
+  {name:'маша', initials:'МА', color:'#E8F5EE', textColor:'#1A7A40'},
+  {name:'соня', initials:'СО', color:'#F0E8FF', textColor:'#6020CC'}
+];
+
+const CATS = [
+  {id:'все',       label:'Все',         icon:'⊹'},
+  {id:'кофейня',   label:'Кофейни',     icon:'✾'},
+  {id:'ресторан',  label:'Рестораны',   icon:'△'},
+  {id:'активности',label:'Активности',  icon:'✺'},
+  {id:'бар',       label:'Бары',        icon:'◇'},
+];
+const CAT_ICON = {кофейня:'✾', ресторан:'△', активности:'✺', бар:'◇', другое:'◈'};
+
+const groups = [];
+
+let activeGroupId=null, activeCat='все', viewMode=2, showingFavorites=false;
+let activeSmartFilters=[], searchTimeout=null;
+let activePlace=null, showDetailForm=false, modalPhotoData=null;
+
+function activeGroup(){ return groups.find(g=>g.id===activeGroupId); }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
+function goMain(){ showingFavorites=false; activePlace=null; showDetailForm=false; show('s-main'); setNavActive('nav-explore'); renderAll(); }
+function showFavorites(){ showingFavorites=true; activeCat='все'; activeSmartFilters=[]; show('s-main'); setNavActive('nav-favorites'); renderAll(); }
+function setNavActive(id){ document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); if(id) document.getElementById(id).classList.add('active'); }
+function renderAll(){ renderCats(); renderGroups(); renderActiveFilters(); renderPlaces(); document.getElementById('searchInput').value=''; }
+
+function renderCats(){
+  const scroll=document.getElementById('catScroll');
+  if(showingFavorites){scroll.innerHTML='';return;}
+  scroll.innerHTML=CATS.map(c=>`<div class="cat-pill ${activeCat===c.id?'active':''}" onclick="setCat('${c.id}')"><div class="cat-icon">${c.icon}</div><div class="cat-label">${c.label}</div></div>`).join('');
+}
+
+function renderGroups(){
+  document.getElementById('groupSelector').innerHTML=
+    groups.map(g=>`<div class="group-chip ${g.id===activeGroupId?'active':''}" onclick="setGroup('${g.id}')" oncontextmenu="deleteGroupPrompt('${g.id}',event)" ontouchstart="startLongPress('${g.id}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()"><div class="group-chip-avs">${g.members.slice(0,3).map(m=>`<div class="group-chip-av" style="background:${m.color};color:${m.textColor}">${m.initials}</div>`).join('')}</div><span>${g.name}</span></div>`).join('')+
+    `<div class="new-group-chip" onclick="openModal('group')">+ группа</div>`;
+}
+
+let longPressTimer=null;
+function startLongPress(gid){ longPressTimer=setTimeout(()=>deleteGroupPrompt(gid,null),600); }
+function cancelLongPress(){ clearTimeout(longPressTimer); }
+function deleteGroupPrompt(gid,e){
+  if(e) e.preventDefault();
+  var g=groups.find(function(x){return x.id===gid;}); if(!g) return;
+  if(confirm('Удалить группу «'+g.name+'»?')){
+    var idx=groups.findIndex(function(x){return x.id===gid;});
+    groups.splice(idx,1);
+    if(activeGroupId===gid) activeGroupId=groups.length?groups[0].id:null;
+    renderGroups(); renderPlaces();
+  }
+}
+
+function setCat(c){ activeCat=c; showingFavorites=false; setNavActive('nav-explore'); renderCats(); renderPlaces(); }
+function setGroup(id){ activeGroupId=id; renderGroups(); renderPlaces(); }
+function setView(v){
+  viewMode=v;
+  document.getElementById('placesList').className=`places-grid view-${v}`;
+  document.getElementById('vt1').className=`vt ${v===1?'active':''}`;
+  document.getElementById('vt2').className=`vt ${v===2?'active':''}`;
+  renderPlaces();
+}
+
+function getPlaces(){
+  const grp=activeGroup(); if(!grp) return [];
+  let places=grp.places;
+  if(showingFavorites) return places.filter(p=>p.loved);
+  if(activeCat!=='все') places=places.filter(p=>p.tag===activeCat);
+  if(activeSmartFilters.length) places=places.filter(p=>activeSmartFilters.every(f=>{
+    if(f.type==='tag') return p.tag===f.value;
+    if(f.type==='feature') return (p.features||[]).some(ft=>ft.toLowerCase().includes(f.value.toLowerCase()));
+    if(f.type==='openFrom') return (p.openFrom||0)<=f.value;
+    return true;
+  }));
+  return places;
+}
+
+function renderPlaces(){
+  const places=getPlaces();
+  document.getElementById('sectionTitle').textContent=showingFavorites?'избранное':activeCat==='все'?`все места (${places.length})`:`${activeCat} (${places.length})`;
+  const wrap=document.getElementById('placesList');
+  wrap.className=`places-grid view-${viewMode}`;
+  if(!places.length){
+    wrap.innerHTML=`<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-icon">${showingFavorites?'♡':'⊹'}</div><div class="empty-title">${showingFavorites?'Пока нет избранных':'Список пуст'}</div><div class="empty-text">${showingFavorites?'Нажми ♡ на карточке':'Добавьте первое место!'}</div></div></div>`;
+    return;
+  }
+  wrap.innerHTML=places.map((p,i)=>{
+    const avg=p.reviews.length?Math.round(p.reviews.reduce((s,r)=>s+r.rating,0)/p.reviews.length*10)/10:null;
+    const icon=CAT_ICON[p.tag]||'◈';
+    return `<div class="place-card" style="animation-delay:${i*.04}s" onclick="openPlace('${p.id}')">
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-name">${p.name}</div>
+          <div class="card-actions-row">
+            <button class="card-add-photo-btn" onclick="triggerCardPhoto('${p.id}',event)" title="добавить фото">${p.photo?'📷✓':'📷'}</button>
+            <button class="card-heart ${p.loved?'loved':''}" onclick="toggleLoved('${p.id}',event)">
+              <span class="card-heart-outline">♡</span><span class="card-heart-fill">♥</span>
+            </button>
+          </div>
+        </div>
+        ${p.photo?`<div class="card-photo-wrap"><img class="card-photo" src="${p.photo}" alt="${p.name}" loading="lazy"></div>`:''}
+        <div class="card-addr">${p.addr}</div>
+        <div class="card-meta-row">
+          <div class="card-tag">${icon} ${p.tag}</div>
+          ${p.visited?'<div class="card-visited-inline">✓ были</div>':''}
+          ${avg?`<div class="card-rating"><span>★</span>${avg}</div>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// Card photo upload
+let pendingCardPhotoId=null;
+const cardPhotoInput=document.createElement('input');
+cardPhotoInput.type='file'; cardPhotoInput.accept='image/*'; cardPhotoInput.style.display='none';
+document.body.appendChild(cardPhotoInput);
+cardPhotoInput.onchange=function(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const p=activeGroup().places.find(x=>x.id===pendingCardPhotoId);
+    if(p){ p.photo=ev.target.result; renderPlaces(); if(activePlace&&activePlace.id===p.id) renderDetailHero(); }
+  };
+  reader.readAsDataURL(file); cardPhotoInput.value='';
+};
+function triggerCardPhoto(pid,e){
+  if(e){e.stopPropagation();e.preventDefault();}
+  pendingCardPhotoId=pid; cardPhotoInput.click();
+}
+
+function toggleLoved(pid,e){
+  if(e){e.stopPropagation();e.preventDefault();}
+  const p=activeGroup().places.find(x=>x.id===pid);if(!p)return;
+  p.loved=!p.loved; renderPlaces();
+  if(activePlace&&activePlace.id===pid)renderDetailHero();
+}
+
+
+function openPlace(pid){
+  activePlace=activeGroup().places.find(p=>p.id===pid);if(!activePlace)return;
+  showDetailForm=false;
+  const p=activePlace;
+  renderDetailHero();
+  document.getElementById('detailTag').textContent=p.tag;
+  document.getElementById('detailName').textContent=p.name;
+  document.getElementById('detailAddr').textContent='📍 '+p.addr;
+  
+  document.getElementById('detailStory').innerHTML=`<strong>${p.name}</strong> — место ждёт своей истории. Посетите и поделитесь впечатлениями!`;
+  renderDetailActions(); renderDetailReviews();
+  show('s-detail'); setNavActive('');
+}
+
+function renderDetailHero(){
+  const p=activePlace; const icon=CAT_ICON[p.tag]||'◈';
+  document.getElementById('detailHero').innerHTML=p.photo
+    ?`<button class="detail-back" onclick="goMain()">←</button><button class="detail-heart ${p.loved?'active':''}" onclick="toggleLoved('${p.id}',event)">${p.loved?'♥':'♡'}</button><img class="detail-hero-img" src="${p.photo}" alt="${p.name}">`
+    :`<button class="detail-back" onclick="goMain()">←</button><button class="detail-heart ${p.loved?'active':''}" onclick="toggleLoved('${p.id}',event)">${p.loved?'♥':'♡'}</button><div class="detail-hero-placeholder">${icon}</div>`;
+  document.getElementById('detailAddPhoto').innerHTML=!p.photo?`<button class="detail-add-photo" onclick="document.getElementById('detailPhotoInput').click()">📷 добавить фото</button>`:'';
+}
+
+function handleDetailPhotoUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{if(activePlace){activePlace.photo=ev.target.result;renderDetailHero();renderPlaces();}};
+  reader.readAsDataURL(file);e.target.value='';
+}
+
+function renderDetailActions(){
+  const p=activePlace;
+  document.getElementById('detailActions').innerHTML=`
+    <button class="d-btn ${p.visited?'done':''}" onclick="toggleDetailVisited()">${p.visited?'✓ были здесь':'отметить посещённым'}</button>
+    <button class="d-btn" onclick="toggleDetailForm()">${showDetailForm?'скрыть':'написать отзыв'}</button>`;
+}
+function toggleDetailVisited(){activePlace.visited=!activePlace.visited;renderDetailActions();renderPlaces();}
+function toggleDetailForm(){showDetailForm=!showDetailForm;const my=activePlace.reviews.find(r=>r.author==='я');activePlace.tempRating=my?my.rating:0;renderDetailActions();renderDetailReviews();}
+function setDetailRating(r){activePlace.tempRating=r;renderDetailReviews();}
+function saveDetailReview(){
+  const p=activePlace;const ta=document.getElementById('d-rv-ta');
+  const text=ta?ta.value.trim():'';const rating=p.tempRating||0;
+  p.reviews=p.reviews.filter(r=>r.author!=='я');
+  if(text||rating)p.reviews.unshift({author:'я',initials:'Я',color:'#FFE0E6',textColor:'#FF385C',rating,text});
+  if(rating||text)p.visited=true;
+  showDetailForm=false;renderDetailActions();renderDetailReviews();renderPlaces();
+}
+function renderDetailReviews(){
+  const p=activePlace;
+  const s=r=>[1,2,3,4,5].map(i=>i<=r?'★':'☆').join('');
+  const si=r=>[1,2,3,4,5].map(i=>`<span class="rv-star ${i<=r?'active':''}" onclick="setDetailRating(${i})">${i<=r?'★':'☆'}</span>`).join('');
+  const my=p.reviews.find(r=>r.author==='я');
+  const count=p.reviews.length;
+  const avg=count?Math.round(p.reviews.reduce((s,r)=>s+r.rating,0)/count*10)/10:null;
+  document.getElementById('rvTitle').innerHTML=count?`★ ${avg} · <span style="font-weight:400;color:var(--gray)">${count} ${count===1?'отзыв':'отзывов'}</span>`:'Отзывы';
+  document.getElementById('detailReviews').innerHTML=count
+    ?p.reviews.map(r=>`<div class="rv-item-wrap"><div class="rv-av" style="background:${r.color};color:${r.textColor}">${r.initials}</div><div class="rv-content"><div class="rv-name-row"><div class="rv-name">${r.author}</div>${r.rating?`<div class="rv-stars">${s(r.rating)}</div>`:''}</div>${r.text?`<div class="rv-text">${r.text}</div>`:''}</div></div>`).join('')
+    :'<div class="rv-empty">Пока нет отзывов — будьте первой!</div>';
+  document.getElementById('reviewFormWrap').innerHTML=showDetailForm?`<div class="rv-form"><div class="rv-form-title">Ваш отзыв</div><div class="rv-form-stars">${si(p.tempRating)}</div><textarea class="rv-textarea" id="d-rv-ta" rows="3" placeholder="Поделитесь впечатлениями...">${my?my.text:''}</textarea><div class="rv-form-btns"><button class="rv-save" onclick="saveDetailReview()">Сохранить</button><button class="rv-cancel" onclick="toggleDetailForm()">Отмена</button></div></div>`:'';
+}
+
+function handleSearchInput(){
+  clearTimeout(searchTimeout);
+  const q=document.getElementById('searchInput').value.trim();
+  if(!q){activeSmartFilters=[];renderActiveFilters();renderPlaces();return;}
+  searchTimeout=setTimeout(()=>runSmartSearch(),700);
+}
+async function runSmartSearch(){
+  const q=document.getElementById('searchInput').value.trim();if(!q)return;
+  document.getElementById('searchLoadingWrap').innerHTML=`<div class="search-loading"><div class="dot-anim"><span></span><span></span><span></span></div>ищу подходящие места...</div>`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:`Пользователь ищет место. Запрос: "${q}"\nВерни ТОЛЬКО JSON: {"filters":[{"type":"tag","value":"кофейня","label":"кофейни"}]}\nТипы: tag (кофейня/ресторан/активности/бар), feature (завтраки/wi-fi/тихо/веганское меню/бесплатно), openFrom (число-час). Максимум 4.`}]})});
+    const data=await res.json();
+    const parsed=JSON.parse((data.content?.find(c=>c.type==='text')?.text||'{}').replace(/```json|```/g,'').trim());
+    activeSmartFilters=parsed.filters||[];
+    const tagF=activeSmartFilters.find(f=>f.type==='tag');if(tagF){activeCat=tagF.value;renderCats();}
+  }catch(e){
+    activeSmartFilters=[];const q2=q.toLowerCase();
+    if(q2.includes('кофейн'))activeSmartFilters.push({type:'tag',value:'кофейня',label:'кофейни'});
+    else if(q2.includes('ресторан'))activeSmartFilters.push({type:'tag',value:'ресторан',label:'рестораны'});
+    else if(q2.includes('парк')||q2.includes('актив'))activeSmartFilters.push({type:'tag',value:'активности',label:'активности'});
+    if(q2.includes('завтрак'))activeSmartFilters.push({type:'feature',value:'завтраки',label:'завтраки'});
+    if(q2.includes('wi-fi')||q2.includes('wifi'))activeSmartFilters.push({type:'feature',value:'wi-fi',label:'wi-fi'});
+    if(q2.includes('тих'))activeSmartFilters.push({type:'feature',value:'тихо',label:'тихо'});
+    const tm=q2.match(/с\s*(\d+)/);if(tm)activeSmartFilters.push({type:'openFrom',value:parseInt(tm[1]),label:`с ${tm[1]}:00`});
+  }
+  document.getElementById('searchLoadingWrap').innerHTML='';renderActiveFilters();renderPlaces();
+}
+function renderActiveFilters(){
+  const w=document.getElementById('activeFiltersWrap');
+  if(!activeSmartFilters.length){w.innerHTML='';return;}
+  w.innerHTML=`<div class="active-filters">${activeSmartFilters.map((f,i)=>`<div class="af-chip">${f.label}<span class="af-x" onclick="removeFilter(${i})"> ✕</span></div>`).join('')}</div>`;
+}
+function removeFilter(i){activeSmartFilters.splice(i,1);renderActiveFilters();renderPlaces();}
+
+function openModal(type){
+  modalPhotoData=null;
+  const m=document.getElementById('modalContent');
+  m.innerHTML='<div class="modal-handle"></div>';
+  if(type==='place'){
+    m.innerHTML+=`<div class="modal-title">Новое место</div><div class="mf"><label>Название</label><input class="m-input" id="newName" placeholder="Double Espresso"></div><div class="mf"><label>Адрес</label><input class="m-input" id="newAddr" placeholder="ул. Революционная 1"></div><div class="mf"><label>Категория</label><select class="m-input" id="newTag"><option value="кофейня">✾ Кофейня</option><option value="ресторан">△ Ресторан</option><option value="активности">✺ Активности</option><option value="бар">◇ Бар</option><option value="другое">◈ Другое</option></select></div><div class="mf"><label>Фото <span style="color:var(--gray3);font-weight:400">(необязательно)</span></label><div class="photo-upload-area"><input type="file" accept="image/*" onchange="handleModalPhoto(event)"><div class="photo-upload-label" id="photoUploadLabel">Нажмите, чтобы загрузить фото</div></div><div id="photoPreviewWrap"></div></div><div class="modal-btns"><button class="mb-secondary" onclick="closeModal()">Отмена</button><button class="mb-primary" onclick="addPlace()">Добавить</button></div>`;
+  }else{
+    m.innerHTML+=`<div class="modal-title">Новая группа</div><div class="mf"><label>Название</label><input class="m-input" id="newGroupName" placeholder="с Соней"></div><div class="modal-btns"><button class="mb-secondary" onclick="closeModal()">Отмена</button><button class="mb-primary" onclick="addGroup()">Создать</button></div>`;
+  }
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function handleModalPhoto(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{modalPhotoData=ev.target.result;document.getElementById('photoUploadLabel').style.display='none';document.getElementById('photoPreviewWrap').innerHTML=`<img class="photo-preview" src="${modalPhotoData}"><button class="photo-remove" onclick="removeModalPhoto()">Удалить фото</button>`;};
+  reader.readAsDataURL(file);
+}
+function removeModalPhoto(){modalPhotoData=null;document.getElementById('photoUploadLabel').style.display='';document.getElementById('photoPreviewWrap').innerHTML='';}
+function closeModal(){document.getElementById('modalOverlay').style.display='none';}
+function closeModalOutside(e){if(e.target.id==='modalOverlay')closeModal();}
+function addPlace(){
+  const name=document.getElementById('newName').value.trim();const addr=document.getElementById('newAddr').value.trim();const tag=document.getElementById('newTag').value;if(!name)return;
+  const grp=activeGroup(); if(!grp) return;
+  grp.places.push({id:'p'+Date.now(),name,tag,addr:addr||'Минск',addedBy:'я',visited:false,loved:false,reviews:[],features:[],openFrom:9,photo:modalPhotoData||null,tempRating:0});
+  closeModal();renderPlaces();
+}
+function addGroup(){
+  const name=document.getElementById('newGroupName').value.trim();if(!name)return;
+  groups.push({id:'g'+Date.now(),name,members:[ME],places:[]});
+  closeModal();renderGroups();
+}
+
+renderAll();
+</script>
+</body>
+</html>
