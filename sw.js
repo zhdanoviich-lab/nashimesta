@@ -1,5 +1,5 @@
-const CACHE = 'nashimesta-v2';
-const ASSETS = ['/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
+const CACHE = 'nashimesta-v3';
+const ASSETS = ['/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -15,9 +15,7 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  
-  // HTML — всегда сеть, fallback на кэш только при офлайне
-  if (e.request.mode === 'navigate'  url.pathname === '/') {
+  if (e.request.mode === 'navigate' || url.pathname === '/') {
     e.respondWith(
       fetch(e.request)
         .then(res => {
@@ -25,12 +23,10 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, clone));
           return res;
         })
-        .catch(() => caches.match(e.request).then(r => r || caches.match('/')))
+        .catch(() => caches.match(e.request))
     );
     return;
   }
-  
-  // Остальное — кэш, fallback на сеть
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request).catch(() => {}))
   );
