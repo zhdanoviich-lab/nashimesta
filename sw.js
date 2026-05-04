@@ -1,4 +1,4 @@
-const CACHE = 'nashimesta-v1';
+const CACHE = 'nashimesta-v2';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
